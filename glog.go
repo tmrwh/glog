@@ -396,7 +396,7 @@ type flushSyncWriter interface {
 }
 
 func init() {
-	flag.BoolVar(&logging.toStderr, "logtostderr", false, "log to standard error instead of files")
+	flag.BoolVar(&logging.toStderr, "logtostderr", true, "log to standard error instead of files")
 	flag.BoolVar(&logging.alsoToStderr, "alsologtostderr", false, "log to standard error as well as files")
 	flag.Var(&logging.verbosity, "v", "log level for V logs")
 	flag.Var(&logging.stderrThreshold, "stderrthreshold", "logs at or above this threshold go to stderr")
@@ -564,19 +564,20 @@ func (l *loggingT) formatHeader(s severity, file string, line int) *buffer {
 	// Lmmdd hh:mm:ss.uuuuuu threadid file:line]
 	buf.tmp[0] = severityChar[s]
 	buf.twoDigits(1, int(month))
-	buf.twoDigits(3, day)
-	buf.tmp[5] = ' '
-	buf.twoDigits(6, hour)
-	buf.tmp[8] = ':'
-	buf.twoDigits(9, minute)
-	buf.tmp[11] = ':'
-	buf.twoDigits(12, second)
-	buf.tmp[14] = '.'
-	buf.nDigits(6, 15, now.Nanosecond()/1000, '0')
-	buf.tmp[21] = ' '
-	buf.nDigits(7, 22, pid, ' ') // TODO: should be TID
-	buf.tmp[29] = ' '
-	buf.Write(buf.tmp[:30])
+	buf.tmp[3] = '/'
+	buf.twoDigits(4, day)
+	buf.tmp[6] = ' '
+	buf.twoDigits(7, hour)
+	buf.tmp[9] = ':'
+	buf.twoDigits(10, minute)
+	buf.tmp[12] = ':'
+	buf.twoDigits(13, second)
+	buf.tmp[15] = '.'
+	buf.nDigits(6, 16, now.Nanosecond()/1000, '0')
+	buf.tmp[22] = ' '
+	// buf.nDigits(7, 22, pid, ' ') // TODO: should be TID
+	// buf.tmp[29] = ' '
+	buf.Write(buf.tmp[:23])
 	buf.WriteString(file)
 	buf.tmp[0] = ':'
 	n := buf.someDigits(1, line)

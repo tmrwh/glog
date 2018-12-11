@@ -1,4 +1,4 @@
-# Google's glog with default flags change 
+# Google's glog with some improvements
 
 so that it works better with Kubernetes
 

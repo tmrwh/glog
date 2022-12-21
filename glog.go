@@ -515,6 +515,19 @@ func (l *loggingT) putBuffer(b *buffer) {
 
 var timeNow = time.Now // Stubbed out for testing.
 
+func fileStr(longFile []byte) string {
+	strs := bytes.Split(longFile, []byte{'/'})
+	l := len(strs)
+	var res []byte
+	if l >= 2 {
+		res = append(strs[l-2], '/')
+		res = append(res, strs[l-1]...)
+	} else {
+		res = strs[0]
+	}
+	return string(res)
+}
+
 /*
 header formats a log header as defined by the C++ implementation.
 It returns a buffer containing the formatted header and the user's file and line number.
@@ -538,10 +551,7 @@ func (l *loggingT) header(s severity, depth int) (*buffer, string, int) {
 		file = "???"
 		line = 1
 	} else {
-		slash := strings.LastIndex(file, "/")
-		if slash >= 0 {
-			file = file[slash+1:]
-		}
+		file = fileStr([]byte(file))
 	}
 	return l.formatHeader(s, file, line), file, line
 }
@@ -919,7 +929,7 @@ func CopyStandardLogTo(name string) {
 	}
 	// Set a log format that captures the user's file and line:
 	//   d.go:23: message
-	stdLog.SetFlags(stdLog.Lshortfile)
+	stdLog.SetFlags(stdLog.Llongfile)
 	stdLog.SetOutput(logBridge(sev))
 }
 
@@ -939,7 +949,7 @@ func (lb logBridge) Write(b []byte) (n int, err error) {
 	if parts := bytes.SplitN(b, []byte{':'}, 3); len(parts) != 3 || len(parts[0]) < 1 || len(parts[2]) < 1 {
 		text = fmt.Sprintf("bad log format: %s", b)
 	} else {
-		file = string(parts[0])
+		file = fileStr(parts[0])
 		text = string(parts[2][1:]) // skip leading space
 		line, err = strconv.Atoi(string(parts[1]))
 		if err != nil {
